@@ -1,0 +1,54 @@
+# Usage
+# 	bitstring = "0101000101" * 4
+# 	PrimeCompressor.zip(bitstring, "temp2.bin")  # Saves and compresses.
+# 	rehydrated = PrimeCompressor.unzip("temp2.bin") # Loads and decompresses
+# 	puts bitstring == rehydrated
+module PrimeCompressor
+
+	# string -> string
+	def PrimeCompressor.file_to_bitstring(filein)
+		binary = File.read(filein)
+		binary.unpack("B*").first
+	end
+
+	# string, string -> nil
+	def PrimeCompressor.bitstring_to_file(bitstring, fileout)
+		binary = [bitstring].pack("B*")
+		File.write(fileout, binary)
+		puts "Wrote #{fileout}" # DEBUG
+	end
+
+	# string -> string
+	# Compresses prime bitstrings by only keeping the 1st, 3rd, 
+	# 7th, and 9th bits
+	def PrimeCompressor.compress1379(bitstring)
+		bitstring.
+			scan(/.{10}/).
+			map { |str| str[1] + str[3] + str[7] + str[9] }.
+			join()
+	end
+		
+	# string -> string
+	# Decompresses prime bitstrings by reinserting 0's for the
+	# 0th, 2nd, 4th, 5th, 6th, and 8th bits.
+	def PrimeCompressor.decompress1379(bitstring)
+		bitstring.
+			scan(/.{4}/).
+			map { |str| "0" + str[0] + "0" + str[1] + "000" + str[2] + "0" + str[3] }.
+			join()
+	end
+
+	# Convenience
+	# string, string -> nil
+	def PrimeCompressor.zip(bitstring, fileout)
+		PrimeCompressor.bitstring_to_file(
+			PrimeCompressor.compress1379(bitstring), fileout)
+	end
+
+	# Convenience
+	# string -> string
+	def PrimeCompressor.unzip(filein)
+		PrimeCompressor.decompress1379(
+			PrimeCompressor.file_to_bitstring(filein))
+	end
+end
